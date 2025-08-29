@@ -21,10 +21,10 @@ class Settings(BaseSettings):
     db_driver: str = "postgresql"
 
     db_datasource_pbms: str = (
-        "postgresql+psycopg://postgres:password@localhost:5432/pbmsdb"
+        "postgresql://postgres:password@localhost:5432/pbmsdb"
     )
     db_external_datasource: str = (
-        "postgresql+psycopg://postgres:password@localhost:5432/externaldb"
+        "postgresql://postgres:password@localhost:5432/externaldb"
     )
 
     celery_broker_url: str = "redis://localhost:6379/0"
