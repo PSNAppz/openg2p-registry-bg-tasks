@@ -18,7 +18,9 @@ classifiers = [
 dependencies = [
   "openg2p-fastapi-common",
   "openg2p-fastapi-auth",
-  "celery"
+  "celery",
+  "psycopg2",
+  "asyncpg"
 ]
 dynamic = ["version"]
 
