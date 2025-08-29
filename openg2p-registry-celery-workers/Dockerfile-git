@@ -14,7 +14,7 @@ RUN groupadd -g ${container_user_gid} ${container_user_group} \
 WORKDIR /app
 
 ADD openg2p-registry-celery-workers /app/openg2p-registry-celery-workers 
-ADD openg2p-registry-bg-tasks-models /app/openg2p-registry-bg-tasks-models 
+ADD ../openg2p-registry-bg-tasks-models /app/openg2p-registry-bg-tasks-models 
 RUN mv /app/openg2p-registry-celery-workers/main.py /app
 
 RUN python3 -m pip install  \
