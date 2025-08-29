@@ -25,9 +25,11 @@ def get_engine():
     if _config.db_datasource:
         db_engine = create_engine(_config.db_datasource)
         db_engine_pbms = create_engine(_config.db_datasource_pbms)
+        db_engine_external = create_engine(_config.db_external_datasource)
         return {
             "registry": db_engine,
             "pbms": db_engine_pbms,
+            "external": db_engine_external,
         }
 
 

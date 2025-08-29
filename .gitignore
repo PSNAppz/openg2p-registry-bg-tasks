@@ -79,3 +79,5 @@ docs/_build/
 # Ignore secret files and env
 .secrets.*
 .env
+dump.rdb
+openg2p-registry-celery-workers/celerybeat-schedule.db
