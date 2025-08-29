@@ -8,8 +8,8 @@ ARG container_user_gid=1001
 RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers make
 RUN apk add --no-cache bash git gettext libpq-dev
 
-RUN groupadd -g ${container_user_gid} ${container_user_group} \
-  && useradd -mN -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user}
+RUN addgroup -g ${container_user_gid} ${container_user_group} \
+  && adduser -D -u ${container_user_uid} -G ${container_user_group} -s /bin/bash ${container_user}
 
 WORKDIR /app
 
@@ -19,7 +19,8 @@ RUN mv /app/openg2p-registry-celery-workers/main.py /app
 
 RUN python3 -m pip install  \
     git+https://github.com/openg2p/openg2p-fastapi-common@v1.1.1\#subdirectory=openg2p-fastapi-common \
-    git+https://github.com/openg2p/openg2p-fastapi-common@v1.1.1\#subdirectory=openg2p-fastapi-auth \
+    git+https://github.com/openg2p/openg2p-fastapi-common@v1.1.1\#subdirectory=openg2p-fastapi-auth
+
 RUN pip install \
   -e /app/openg2p-registry-celery-workers \
   -e /app/openg2p-registry-bg-tasks-models
@@ -30,4 +31,4 @@ USER ${container_user}
 
 ENV PYTHONUNBUFFERED=1
 
-CMD celery -A main.celery_app worker -Q registry_queue --loglevel=info
+CMD ["celery", "-A", "main.celery_app", "worker", "-Q", "registry_queue", "--loglevel=info"]

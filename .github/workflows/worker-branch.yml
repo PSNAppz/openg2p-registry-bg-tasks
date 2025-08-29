@@ -31,7 +31,7 @@ jobs:
           echo IMAGE_ID=$IMAGE_ID >> $GITHUB_ENV
           echo VERSION=$VERSION >> $GITHUB_ENV
 
-          docker build ./openg2p-registry-celery-workers -f ./openg2p-registry-celery-workers/Dockerfile-git \
+          docker build . -f ./openg2p-registry-celery-workers/Dockerfile-git \
             --tag $IMAGE_ID:$VERSION
           if [[ '${{ secrets.docker_hub_token }}' != '' && '${{ secrets.docker_hub_actor }}' != '' ]]; then
             export DOCKER_PUSH="true"
