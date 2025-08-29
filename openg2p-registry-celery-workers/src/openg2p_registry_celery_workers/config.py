@@ -20,9 +20,7 @@ class Settings(BaseSettings):
     db_dbname: str = "socialregistrydb"
     db_driver: str = "postgresql"
 
-    db_datasource_pbms: str = (
-        "postgresql://postgres:password@localhost:5432/pbmsdb"
-    )
+    db_datasource_pbms: str = "postgresql://postgres:password@localhost:5432/pbmsdb"
     db_external_datasource: str = (
         "postgresql://postgres:password@localhost:5432/externaldb"
     )

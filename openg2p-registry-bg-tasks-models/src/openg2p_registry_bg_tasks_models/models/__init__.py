@@ -1,3 +1,6 @@
+from .external_rta_registration import (
+    RtaRegistration,
+)
 from .g2p_que_background_task import (
     G2PQueBackgroundTask,
     TaskStatus,
@@ -10,7 +13,4 @@ from .g2p_registry_vehicle_ownership import (
 )
 from .res_partner import (
     ResPartner,
-)
-from .external_rta_registration import (
-    RtaRegistration,
 )

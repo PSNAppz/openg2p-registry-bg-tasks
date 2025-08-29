@@ -1,4 +1,3 @@
-from datetime import date
 from typing import Optional
 
 from openg2p_fastapi_common.models import BaseORMModel
@@ -20,7 +19,7 @@ class G2PRegistryVehicleOwnership(BaseORMModel):
     manufacturer = mapped_column(String, nullable=True)
     unique_id = mapped_column(String, nullable=True)
     no_of_wheels = mapped_column(BigInteger, nullable=True)
-    
+
     # Hardcoded mapping of Class of Vehicle (COV) to number of wheels
     COV_TO_WHEELS_MAPPING = {
         "Adapted Vehicle": 4,
@@ -123,15 +122,15 @@ class G2PRegistryVehicleOwnership(BaseORMModel):
         "Vehicle Fitted with Construction Equipment": 4,
         "X-Ray van": 4,
     }
-    
+
     @classmethod
     def get_wheels_for_cov(cls, class_of_vehicle: Optional[str]) -> Optional[int]:
         """
         Get the number of wheels for a given class of vehicle.
-        
+
         Args:
             class_of_vehicle: The class of vehicle string
-            
+
         Returns:
             Number of wheels or None if not found/undefined
         """
