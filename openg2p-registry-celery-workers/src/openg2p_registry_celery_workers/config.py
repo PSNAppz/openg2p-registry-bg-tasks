@@ -21,9 +21,14 @@ class Settings(BaseSettings):
     db_driver: str = "postgresql"
 
     db_datasource_pbms: str = "postgresql://postgres:password@localhost:5432/pbmsdb"
-    db_external_datasource: str = (
-        "postgresql://postgres:password@localhost:5432/externaldb"
-    )
+    
+    # External database connection parameters
+    db_external_host: str = "localhost"
+    db_external_port: int = 5432
+    db_external_username: str = "postgres"
+    db_external_password: str = "password"
+    db_external_dbname: str = "externaldb"
+    db_external_driver: str = "postgresql"
 
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_backend_url: str = "redis://localhost:6379/0"
@@ -52,3 +57,8 @@ class Settings(BaseSettings):
         "max_id_generation_request_attempts": 4,
         "max_id_generation_update_attempts": 4,
     }
+
+    @property
+    def db_external_datasource(self) -> str:
+        """Construct external database connection string from separate components."""
+        return f"{self.db_external_driver}://{self.db_external_username}:{self.db_external_password}@{self.db_external_host}:{self.db_external_port}/{self.db_external_dbname}"
