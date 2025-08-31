@@ -5,6 +5,7 @@ from sqlalchemy.orm import mapped_column
 
 class RtaRegistration(BaseORMModel):
     __tablename__ = "rta_registration"
+    __table_args__ = {'schema': 'raw'}
 
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     aname = mapped_column(String, nullable=True)
