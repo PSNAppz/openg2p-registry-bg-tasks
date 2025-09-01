@@ -14,14 +14,14 @@ class TaskStatus(enum.Enum):
 
 class EnumAsString(TypeDecorator):
     """A type decorator that stores enum values as strings in the database."""
-    
+
     impl = String
     cache_ok = True
-    
+
     def __init__(self, enum_class, *args, **kwargs):
         self.enum_class = enum_class
         super().__init__(*args, **kwargs)
-    
+
     def process_bind_param(self, value, dialect):
         """Convert enum to string when saving to database."""
         if value is None:
@@ -29,7 +29,7 @@ class EnumAsString(TypeDecorator):
         if isinstance(value, self.enum_class):
             return value.value
         return value
-    
+
     def process_result_value(self, value, dialect):
         """Convert string to enum when loading from database."""
         if value is None:

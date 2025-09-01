@@ -1,5 +1,5 @@
 from openg2p_fastapi_common.models import BaseORMModel
-from sqlalchemy import Integer, String, PrimaryKeyConstraint
+from sqlalchemy import PrimaryKeyConstraint, String
 from sqlalchemy.orm import mapped_column
 
 
@@ -8,8 +8,10 @@ class RtaRegistration(BaseORMModel):
     __table_args__ = (
         # Composite primary key using multiple fields to handle duplicates/nulls
         # This ensures we can uniquely identify records for pagination
-        PrimaryKeyConstraint('regnno', 'aadhaar', 'issuedate', name='pk_rta_registration'),
-        {'schema': 'raw'}
+        PrimaryKeyConstraint(
+            "regnno", "aadhaar", "issuedate", name="pk_rta_registration"
+        ),
+        {"schema": "raw"},
     )
 
     aname = mapped_column(String, nullable=True)

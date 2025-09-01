@@ -147,8 +147,8 @@ def _count_total_records(
         # Filter out records with poor data quality (same as worker)
         query = query.filter(
             RtaRegistration.regnno.isnot(None),  # Exclude NULL registration numbers
-            RtaRegistration.regnno != '',        # Exclude empty registration numbers
-            RtaRegistration.aadhaar.isnot(None)  # Ensure we have owner Aadhaar
+            RtaRegistration.regnno != "",  # Exclude empty registration numbers
+            RtaRegistration.aadhaar.isnot(None),  # Ensure we have owner Aadhaar
         )
 
         # Apply date filter if provided
@@ -159,9 +159,7 @@ def _count_total_records(
 
         # Order by same fields as worker for consistent results
         query = query.order_by(
-            RtaRegistration.regnno,
-            RtaRegistration.aadhaar,
-            RtaRegistration.issuedate
+            RtaRegistration.regnno, RtaRegistration.aadhaar, RtaRegistration.issuedate
         )
 
         # Get total count
