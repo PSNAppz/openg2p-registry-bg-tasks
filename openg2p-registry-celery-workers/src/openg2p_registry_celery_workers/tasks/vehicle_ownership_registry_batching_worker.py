@@ -56,7 +56,7 @@ def vehicle_ownership_registry_batching_worker(id: int):
             # Extract parameters from payload
             payload = task_record.worker_payload or {}
             registration_issue_date = payload.get("registration_issue_date")
-            batch_size = payload.get("batch_size", 5000)  # Records per batch
+            batch_size = payload.get("batch_size", 1000)  # Records per batch
             max_records = payload.get("max_records")  # Optional limit
 
             _logger.info(
