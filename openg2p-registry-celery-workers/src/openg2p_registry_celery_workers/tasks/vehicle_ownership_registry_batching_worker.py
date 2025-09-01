@@ -150,6 +150,9 @@ def _count_total_records(
                 issue_date=registration_issue_date
             )
 
+        # Order by regnno for consistent results (same as worker query)
+        query = query.order_by(RtaRegistration.regnno)
+
         # Get total count
         total_count = query.count()
 

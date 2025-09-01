@@ -7,11 +7,11 @@ class RtaRegistration(BaseORMModel):
     __tablename__ = "rta_registration"
     __table_args__ = {'schema': 'raw'}
 
-    id = mapped_column(Integer, primary_key=True, autoincrement=True)
     aname = mapped_column(String, nullable=True)
     dob = mapped_column(String, nullable=True)
     pgname = mapped_column(String, nullable=True)
-    regnno = mapped_column(String, nullable=True)
+    # Registration number - unique identifier for vehicles (NOT NULL and UNIQUE)
+    regnno = mapped_column(String, nullable=False, unique=True)
     officecode = mapped_column(String, nullable=True)
     issuedate = mapped_column(String, nullable=True)
     regn_fromdate = mapped_column(String, nullable=True)

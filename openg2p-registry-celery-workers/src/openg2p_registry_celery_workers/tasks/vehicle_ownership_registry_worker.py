@@ -143,6 +143,9 @@ def _process_vehicle_ownership_data(
                 text("rta_registration.issuedate > :issue_date")
             ).params(issue_date=registration_issue_date)
 
+        # Apply ordering for consistent pagination using regnno (unique vehicle registration number)
+        query = query.order_by(RtaRegistration.regnno)
+        
         # Apply pagination
         query = query.offset(page_offset).limit(page_size)
 
