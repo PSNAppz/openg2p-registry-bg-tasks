@@ -9,8 +9,12 @@ class G2PRegistryVehicleOwnership(BaseORMModel):
     __tablename__ = "g2p_registry_vehicle_ownership"
 
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
-    unique_vehicle_id = mapped_column(String, nullable=False)
+    vehicle_registration_id = mapped_column(String, nullable=False)
+    individual_registry_id = mapped_column(Integer, nullable=False)
+    individual_unique_id = mapped_column(String, nullable=True)
     owner_aadhaar = mapped_column(String, nullable=True)
+    family_registry_id = mapped_column(Integer, nullable=True)
+    family_unique_id = mapped_column(String, nullable=True)
     class_of_vehicle = mapped_column(String, nullable=True)
     registration_from_date = mapped_column(Date, nullable=True)
     registration_to_date = mapped_column(Date, nullable=True)

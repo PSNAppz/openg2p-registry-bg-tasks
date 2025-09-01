@@ -4,6 +4,8 @@ from typing import Optional
 
 from openg2p_registry_bg_tasks_models.models import (
     G2PQueBackgroundTask,
+    G2PRegistryFamilies,
+    G2PRegistryIndividuals,
     G2PRegistryVehicleOwnership,
     RtaRegistration,
     TaskStatus,
@@ -173,19 +175,19 @@ def _process_vehicle_ownership_data(
                 # Check if vehicle ownership record already exists
                 existing_record = (
                     registry_session.query(G2PRegistryVehicleOwnership)
-                    .filter_by(unique_vehicle_id=rta_record.regnno)
+                    .filter_by(vehicle_registration_id=rta_record.regnno)
                     .first()
                 )
 
                 if existing_record:
                     # Update existing record
-                    _update_vehicle_ownership_record(existing_record, rta_record)
+                    _update_vehicle_ownership_record(existing_record, rta_record, registry_session)
                     _logger.debug(
                         f"Updated existing vehicle ownership record for vehicle: {rta_record.regnno}"
                     )
                 else:
                     # Create new record
-                    new_record = _create_vehicle_ownership_record(rta_record)
+                    new_record = _create_vehicle_ownership_record(rta_record, registry_session)
                     registry_session.add(new_record)
                     _logger.debug(
                         f"Created new vehicle ownership record for vehicle: {rta_record.regnno}"
@@ -216,32 +218,43 @@ def _process_vehicle_ownership_data(
 
 def _create_vehicle_ownership_record(
     rta_record: RtaRegistration,
+    registry_session,
 ) -> G2PRegistryVehicleOwnership:
     """
     Create a new G2PRegistryVehicleOwnership record from RTA data.
 
     Args:
         rta_record: RTA registration record
+        registry_session: Registry database session for lookups
 
     Returns:
         New G2PRegistryVehicleOwnership instance
     """
+    # Look up individual and family data from registry views
+    individual_data, family_data = _lookup_registry_data(registry_session, rta_record.aadhaar)
+    
     return G2PRegistryVehicleOwnership(
-        unique_vehicle_id=rta_record.regnno or "",
+        vehicle_registration_id=rta_record.regnno or "",
+        individual_registry_id=individual_data.get('id') if individual_data else None,
+        individual_unique_id=individual_data.get('unique_id') if individual_data else None,
         owner_aadhaar=rta_record.aadhaar,
-        unique_id=rta_record.aadhaar,
+        family_registry_id=family_data.get('id') if family_data else None,
+        family_unique_id=family_data.get('unique_id') if family_data else None,
         class_of_vehicle=rta_record.cov,
         registration_from_date=_parse_date_string(rta_record.regn_fromdate),
         registration_to_date=_parse_date_string(rta_record.regn_todate),
         engine_no=rta_record.engno,
         chassis_no=rta_record.chsno,
         manufacturer=rta_record.mkrname,
+        unique_id=family_data.get('unique_id') if family_data else None,  # Same as family_unique_id
         no_of_wheels=G2PRegistryVehicleOwnership.get_wheels_for_cov(rta_record.cov),
     )
 
 
 def _update_vehicle_ownership_record(
-    existing_record: G2PRegistryVehicleOwnership, rta_record: RtaRegistration
+    existing_record: G2PRegistryVehicleOwnership, 
+    rta_record: RtaRegistration,
+    registry_session,
 ) -> None:
     """
     Update an existing G2PRegistryVehicleOwnership record with RTA data.
@@ -249,9 +262,13 @@ def _update_vehicle_ownership_record(
     Args:
         existing_record: Existing vehicle ownership record
         rta_record: RTA registration record
+        registry_session: Registry database session for lookups
     """
+    # Look up individual and family data from registry views
+    individual_data, family_data = _lookup_registry_data(registry_session, rta_record.aadhaar)
+    
+    # Update vehicle-specific fields
     existing_record.owner_aadhaar = rta_record.aadhaar
-    existing_record.unique_id = rta_record.aadhaar
     existing_record.class_of_vehicle = rta_record.cov
     existing_record.registration_from_date = _parse_date_string(
         rta_record.regn_fromdate
@@ -263,6 +280,69 @@ def _update_vehicle_ownership_record(
     existing_record.no_of_wheels = G2PRegistryVehicleOwnership.get_wheels_for_cov(
         rta_record.cov
     )
+    
+    # Update registry-related fields
+    existing_record.individual_registry_id = individual_data.get('id') if individual_data else None
+    existing_record.individual_unique_id = individual_data.get('unique_id') if individual_data else None
+    existing_record.family_registry_id = family_data.get('id') if family_data else None
+    existing_record.family_unique_id = family_data.get('unique_id') if family_data else None
+    existing_record.unique_id = family_data.get('unique_id') if family_data else None
+
+
+def _lookup_registry_data(registry_session, aadhaar_id: Optional[str]) -> tuple[Optional[dict], Optional[dict]]:
+    """
+    Look up individual and family data from registry views.
+    
+    Args:
+        registry_session: Registry database session
+        aadhaar_id: Aadhaar ID to search for
+        
+    Returns:
+        Tuple of (individual_data, family_data) dictionaries or (None, None) if not found
+    """
+    if not aadhaar_id:
+        return None, None
+        
+    try:
+        # Look up individual by aadhaar_id
+        individual = (
+            registry_session.query(G2PRegistryIndividuals)
+            .filter_by(aadhaar_id=aadhaar_id)
+            .first()
+        )
+        
+        if not individual:
+            _logger.debug(f"No individual found for Aadhaar: {aadhaar_id}")
+            return None, None
+            
+        # Look up family by family_id
+        family = None
+        if individual.family_id:
+            family = (
+                registry_session.query(G2PRegistryFamilies)
+                .filter_by(id=individual.family_id)
+                .first()
+            )
+            
+        individual_data = {
+            'id': individual.id,
+            'unique_id': individual.unique_id,
+            'family_id': individual.family_id,
+            'family_unique_id': individual.family_unique_id,
+        }
+        
+        family_data = None
+        if family:
+            family_data = {
+                'id': family.id,
+                'unique_id': family.unique_id,
+            }
+        
+        return individual_data, family_data
+        
+    except Exception as e:
+        _logger.warning(f"Error looking up registry data for Aadhaar {aadhaar_id}: {str(e)}")
+        return None, None
 
 
 def _parse_date_string(date_str: Optional[str]) -> Optional[datetime]:
