@@ -1,17 +1,22 @@
 from openg2p_fastapi_common.models import BaseORMModel
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, String, PrimaryKeyConstraint
 from sqlalchemy.orm import mapped_column
 
 
 class RtaRegistration(BaseORMModel):
     __tablename__ = "rta_registration"
-    __table_args__ = {'schema': 'raw'}
+    __table_args__ = (
+        # Composite primary key using multiple fields to handle duplicates/nulls
+        # This ensures we can uniquely identify records for pagination
+        PrimaryKeyConstraint('regnno', 'aadhaar', 'issuedate', name='pk_rta_registration'),
+        {'schema': 'raw'}
+    )
 
     aname = mapped_column(String, nullable=True)
     dob = mapped_column(String, nullable=True)
     pgname = mapped_column(String, nullable=True)
-    # Registration number - unique identifier for vehicles (NOT NULL and UNIQUE)
-    regnno = mapped_column(String, nullable=False, unique=True)
+    # Registration number - may have duplicates and NULLs in external data
+    regnno = mapped_column(String, nullable=True)
     officecode = mapped_column(String, nullable=True)
     issuedate = mapped_column(String, nullable=True)
     regn_fromdate = mapped_column(String, nullable=True)

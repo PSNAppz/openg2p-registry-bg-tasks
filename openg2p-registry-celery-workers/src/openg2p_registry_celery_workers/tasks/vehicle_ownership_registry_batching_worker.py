@@ -144,14 +144,25 @@ def _count_total_records(
         # Build count query
         query = external_session.query(RtaRegistration)
 
+        # Filter out records with poor data quality (same as worker)
+        query = query.filter(
+            RtaRegistration.regnno.isnot(None),  # Exclude NULL registration numbers
+            RtaRegistration.regnno != '',        # Exclude empty registration numbers
+            RtaRegistration.aadhaar.isnot(None)  # Ensure we have owner Aadhaar
+        )
+
         # Apply date filter if provided
         if registration_issue_date:
             query = query.filter(text("issuedate > :issue_date")).params(
                 issue_date=registration_issue_date
             )
 
-        # Order by regnno for consistent results (same as worker query)
-        query = query.order_by(RtaRegistration.regnno)
+        # Order by same fields as worker for consistent results
+        query = query.order_by(
+            RtaRegistration.regnno,
+            RtaRegistration.aadhaar,
+            RtaRegistration.issuedate
+        )
 
         # Get total count
         total_count = query.count()

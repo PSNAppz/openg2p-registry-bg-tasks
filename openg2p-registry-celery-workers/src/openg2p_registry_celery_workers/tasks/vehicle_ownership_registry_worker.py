@@ -136,6 +136,13 @@ def _process_vehicle_ownership_data(
         # Build query for RTA registration data
         query = external_session.query(RtaRegistration)
 
+        # Filter out records with poor data quality
+        query = query.filter(
+            RtaRegistration.regnno.isnot(None),  # Exclude NULL registration numbers
+            RtaRegistration.regnno != '',        # Exclude empty registration numbers
+            RtaRegistration.aadhaar.isnot(None)  # Ensure we have owner Aadhaar
+        )
+
         # Apply date filter if provided
         if registration_issue_date:
             # Convert string date to date format for comparison
@@ -143,8 +150,13 @@ def _process_vehicle_ownership_data(
                 text("rta_registration.issuedate > :issue_date")
             ).params(issue_date=registration_issue_date)
 
-        # Apply ordering for consistent pagination using regnno (unique vehicle registration number)
-        query = query.order_by(RtaRegistration.regnno)
+        # Apply ordering for consistent pagination
+        # Use multiple fields to ensure deterministic ordering even with duplicates
+        query = query.order_by(
+            RtaRegistration.regnno,
+            RtaRegistration.aadhaar,
+            RtaRegistration.issuedate
+        )
         
         # Apply pagination
         query = query.offset(page_offset).limit(page_size)
