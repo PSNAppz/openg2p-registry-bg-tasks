@@ -35,4 +35,4 @@ def test_example_worker(mock_session):
 
     mock_session.commit.assert_called()
     assert mock_task.number_of_attempts == 1
-    assert mock_task.task_status == TaskStatus.COMPLETED.value
+    assert mock_task.task_status == TaskStatus.COMPLETED
