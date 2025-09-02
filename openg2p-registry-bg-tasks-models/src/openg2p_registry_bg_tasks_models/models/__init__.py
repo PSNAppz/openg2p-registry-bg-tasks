@@ -17,6 +17,9 @@ from .g2p_registry_individuals import (
 from .g2p_registry_vehicle_ownership import (
     G2PRegistryVehicleOwnership,
 )
+from .posidex_govt_emps_with_aadhaar import (
+    PosidexGovtEmpsWithAadhaar,
+)
 from .res_partner import (
     ResPartner,
 )
