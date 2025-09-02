@@ -14,6 +14,9 @@ from .g2p_registry_govt_employees import (
 from .g2p_registry_individuals import (
     G2PRegistryIndividuals,
 )
+from .g2p_registry_ration_card_applicant import (
+    G2PRegistryRationCardApplicant,
+)
 from .g2p_registry_vehicle_ownership import (
     G2PRegistryVehicleOwnership,
 )
