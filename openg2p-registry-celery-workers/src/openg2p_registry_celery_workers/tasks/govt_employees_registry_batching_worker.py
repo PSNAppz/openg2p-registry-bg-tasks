@@ -7,7 +7,6 @@ from openg2p_registry_bg_tasks_models.models import (
     PosidexGovtEmpsWithAadhaar,
     TaskStatus,
 )
-from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from ..app import celery_app, get_engine
@@ -29,7 +28,9 @@ def govt_employees_registry_batching_worker(id: int):
     Args:
         id: The G2PQueBackgroundTask ID to process
     """
-    _logger.info(f"Government Employees Registry Batching Worker processing task id: {id}")
+    _logger.info(
+        f"Government Employees Registry Batching Worker processing task id: {id}"
+    )
 
     registry_session_maker = sessionmaker(
         bind=_engine.get("registry"), expire_on_commit=False
@@ -63,9 +64,7 @@ def govt_employees_registry_batching_worker(id: int):
             )
 
             # Count total records to be processed
-            total_records = _count_total_records(
-                external_session_maker, max_records
-            )
+            total_records = _count_total_records(external_session_maker, max_records)
 
             if total_records == 0:
                 _logger.info("No records found to process")
@@ -139,7 +138,7 @@ def _count_total_records(
         # Build count query - filter out records without aadhaar
         query = external_session.query(PosidexGovtEmpsWithAadhaar).filter(
             PosidexGovtEmpsWithAadhaar.aadhaar_no.isnot(None),
-            PosidexGovtEmpsWithAadhaar.aadhaar_no != '',
+            PosidexGovtEmpsWithAadhaar.aadhaar_no != "",
         )
 
         # Order by icdb_id for consistent results

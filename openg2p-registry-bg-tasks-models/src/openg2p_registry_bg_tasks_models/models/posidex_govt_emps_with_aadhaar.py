@@ -1,5 +1,5 @@
 from openg2p_fastapi_common.models import BaseORMModel
-from sqlalchemy import Integer, String, PrimaryKeyConstraint
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import mapped_column
 
 
@@ -7,7 +7,7 @@ class PosidexGovtEmpsWithAadhaar(BaseORMModel):
     __tablename__ = "posidex_govt_emps_with_aadhar"
     __table_args__ = (
         # Use icdb_id as primary key since it's the unique identifier
-        {'schema': 'raw'}
+        {"schema": "raw"}
     )
 
     icdb_id = mapped_column(Integer, primary_key=True)

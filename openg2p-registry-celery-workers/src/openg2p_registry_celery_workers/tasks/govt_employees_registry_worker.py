@@ -135,12 +135,12 @@ def _process_govt_employees_data(
         # Filter out records with poor data quality
         query = query.filter(
             PosidexGovtEmpsWithAadhaar.aadhaar_no.isnot(None),  # Exclude NULL aadhaar
-            PosidexGovtEmpsWithAadhaar.aadhaar_no != '',        # Exclude empty aadhaar
+            PosidexGovtEmpsWithAadhaar.aadhaar_no != "",  # Exclude empty aadhaar
         )
 
         # Apply ordering for consistent pagination
         query = query.order_by(PosidexGovtEmpsWithAadhaar.icdb_id)
-        
+
         # Apply pagination
         query = query.offset(page_offset).limit(page_size)
 
@@ -164,13 +164,17 @@ def _process_govt_employees_data(
 
                 if existing_record:
                     # Update existing record
-                    _update_govt_employee_record(existing_record, govt_emp_record, registry_session)
+                    _update_govt_employee_record(
+                        existing_record, govt_emp_record, registry_session
+                    )
                     _logger.debug(
                         f"Updated existing government employee record for aadhaar: {govt_emp_record.aadhaar_no}"
                     )
                 else:
                     # Create new record
-                    new_record = _create_govt_employee_record(govt_emp_record, registry_session)
+                    new_record = _create_govt_employee_record(
+                        govt_emp_record, registry_session
+                    )
                     registry_session.add(new_record)
                     _logger.debug(
                         f"Created new government employee record for aadhaar: {govt_emp_record.aadhaar_no}"
@@ -219,16 +223,22 @@ def _create_govt_employee_record(
     """
     # Look up individual and family data from registry views
     # If lookup fails, continue with basic employee data
-    individual_data, family_data = _lookup_registry_data(registry_session, govt_emp_record.aadhaar_no)
-    
+    individual_data, family_data = _lookup_registry_data(
+        registry_session, govt_emp_record.aadhaar_no
+    )
+
     return G2PRegistryGovtEmployees(
         aadhaar=govt_emp_record.aadhaar_no,
         government_department=govt_emp_record.type_of_business,  # Can be null
-        individual_registry_id=individual_data.get('id') if individual_data else None,
-        individual_unique_id=individual_data.get('unique_id') if individual_data else None,
-        family_registry_id=family_data.get('id') if family_data else None,
-        family_unique_id=family_data.get('unique_id') if family_data else None,
-        unique_id=family_data.get('unique_id') if family_data else None,  # Same as family_unique_id
+        individual_registry_id=individual_data.get("id") if individual_data else None,
+        individual_unique_id=individual_data.get("unique_id")
+        if individual_data
+        else None,
+        family_registry_id=family_data.get("id") if family_data else None,
+        family_unique_id=family_data.get("unique_id") if family_data else None,
+        unique_id=family_data.get("unique_id")
+        if family_data
+        else None,  # Same as family_unique_id
         employee_since_date=None,  # Can be null as specified
         type_of_department=govt_emp_record.type_of_business,  # Can be null
         government_employee_id=govt_emp_record.identifier1,
@@ -236,7 +246,7 @@ def _create_govt_employee_record(
 
 
 def _update_govt_employee_record(
-    existing_record: G2PRegistryGovtEmployees, 
+    existing_record: G2PRegistryGovtEmployees,
     govt_emp_record: PosidexGovtEmpsWithAadhaar,
     registry_session,
 ) -> None:
@@ -249,35 +259,45 @@ def _update_govt_employee_record(
         registry_session: Registry database session for lookups
     """
     # Look up individual and family data from registry views
-    individual_data, family_data = _lookup_registry_data(registry_session, govt_emp_record.aadhaar_no)
-    
+    individual_data, family_data = _lookup_registry_data(
+        registry_session, govt_emp_record.aadhaar_no
+    )
+
     # Update employee-specific fields
     existing_record.government_department = govt_emp_record.type_of_business
     existing_record.type_of_department = govt_emp_record.type_of_business
     existing_record.government_employee_id = govt_emp_record.identifier1
-    
+
     # Update registry-related fields
-    existing_record.individual_registry_id = individual_data.get('id') if individual_data else None
-    existing_record.individual_unique_id = individual_data.get('unique_id') if individual_data else None
-    existing_record.family_registry_id = family_data.get('id') if family_data else None
-    existing_record.family_unique_id = family_data.get('unique_id') if family_data else None
-    existing_record.unique_id = family_data.get('unique_id') if family_data else None
+    existing_record.individual_registry_id = (
+        individual_data.get("id") if individual_data else None
+    )
+    existing_record.individual_unique_id = (
+        individual_data.get("unique_id") if individual_data else None
+    )
+    existing_record.family_registry_id = family_data.get("id") if family_data else None
+    existing_record.family_unique_id = (
+        family_data.get("unique_id") if family_data else None
+    )
+    existing_record.unique_id = family_data.get("unique_id") if family_data else None
 
 
-def _lookup_registry_data(registry_session, aadhaar_id: Optional[str]) -> tuple[Optional[dict], Optional[dict]]:
+def _lookup_registry_data(
+    registry_session, aadhaar_id: Optional[str]
+) -> tuple[Optional[dict], Optional[dict]]:
     """
     Look up individual and family data from registry views.
-    
+
     Args:
         registry_session: Registry database session
         aadhaar_id: Aadhaar ID to search for
-        
+
     Returns:
         Tuple of (individual_data, family_data) dictionaries or (None, None) if not found
     """
     if not aadhaar_id:
         return None, None
-        
+
     try:
         # Look up individual by aadhaar_id
         individual = (
@@ -285,11 +305,11 @@ def _lookup_registry_data(registry_session, aadhaar_id: Optional[str]) -> tuple[
             .filter_by(aadhaar_id=aadhaar_id)
             .first()
         )
-        
+
         if not individual:
             _logger.debug(f"No individual found for Aadhaar: {aadhaar_id}")
             return None, None
-            
+
         # Look up family by family_id
         family = None
         if individual.family_id:
@@ -300,25 +320,29 @@ def _lookup_registry_data(registry_session, aadhaar_id: Optional[str]) -> tuple[
                     .first()
                 )
             except Exception as family_lookup_error:
-                _logger.warning(f"Error looking up family {individual.family_id} for Aadhaar {aadhaar_id}: {str(family_lookup_error)}")
+                _logger.warning(
+                    f"Error looking up family {individual.family_id} for Aadhaar {aadhaar_id}: {str(family_lookup_error)}"
+                )
                 # Continue with individual data only
-            
+
         individual_data = {
-            'id': individual.id,
-            'unique_id': individual.unique_id,
-            'family_id': individual.family_id,
-            'family_unique_id': individual.family_unique_id,
+            "id": individual.id,
+            "unique_id": individual.unique_id,
+            "family_id": individual.family_id,
+            "family_unique_id": individual.family_unique_id,
         }
-        
+
         family_data = None
         if family:
             family_data = {
-                'id': family.id,
-                'unique_id': family.unique_id,
+                "id": family.id,
+                "unique_id": family.unique_id,
             }
-        
+
         return individual_data, family_data
-        
+
     except Exception as e:
-        _logger.warning(f"Error looking up individual registry data for Aadhaar {aadhaar_id}: {str(e)}")
+        _logger.warning(
+            f"Error looking up individual registry data for Aadhaar {aadhaar_id}: {str(e)}"
+        )
         return None, None

@@ -73,10 +73,14 @@ def ration_card_applicant_worker(id: int):
             if task_record.worker_payload is None:
                 task_record.worker_payload = {}
             task_record.worker_payload["records_created"] = records_created
-            task_record.worker_payload["processing_completed_date"] = datetime.utcnow().isoformat()
+            task_record.worker_payload[
+                "processing_completed_date"
+            ] = datetime.utcnow().isoformat()
 
             registry_session.commit()
-            _logger.info(f"Successfully created {records_created} ration card applicant records")
+            _logger.info(
+                f"Successfully created {records_created} ration card applicant records"
+            )
 
         except Exception as e:
             if task_record:
@@ -99,12 +103,12 @@ def _create_ration_card_applicants(
 ) -> int:
     """
     Create ration card applicant records from vehicle ownership and government employee data.
-    
+
     Args:
         registry_session: Registry database session
         max_records: Maximum number of records to create
         application_channel: Application channel value for records
-        
+
     Returns:
         Number of records created
     """
@@ -115,18 +119,24 @@ def _create_ration_card_applicants(
     _logger.info("Starting to process vehicle ownership records...")
 
     # Process vehicle ownership records first
-    vehicle_query = registry_session.query(G2PRegistryVehicleOwnership).filter(
-        G2PRegistryVehicleOwnership.owner_aadhaar.isnot(None),
-        G2PRegistryVehicleOwnership.owner_aadhaar != '',
-    ).order_by(G2PRegistryVehicleOwnership.owner_aadhaar)
+    vehicle_query = (
+        registry_session.query(G2PRegistryVehicleOwnership)
+        .filter(
+            G2PRegistryVehicleOwnership.owner_aadhaar.isnot(None),
+            G2PRegistryVehicleOwnership.owner_aadhaar != "",
+        )
+        .order_by(G2PRegistryVehicleOwnership.owner_aadhaar)
+    )
 
     vehicle_records = vehicle_query.all()
-    _logger.info(f"Found {len(vehicle_records)} vehicle ownership records with valid Aadhaar")
+    _logger.info(
+        f"Found {len(vehicle_records)} vehicle ownership records with valid Aadhaar"
+    )
 
     for vehicle_record in vehicle_records:
         if records_created >= max_records:
             break
-            
+
         # Skip if Aadhaar already processed
         if vehicle_record.owner_aadhaar in processed_aadhaar:
             continue
@@ -160,38 +170,52 @@ def _create_ration_card_applicants(
                 processed_aadhaar.add(vehicle_record.owner_aadhaar)
                 records_created += 1
 
-                _logger.debug(f"Created ration card applicant from vehicle record: {vehicle_record.owner_aadhaar}")
+                _logger.debug(
+                    f"Created ration card applicant from vehicle record: {vehicle_record.owner_aadhaar}"
+                )
 
             savepoint.commit()
 
             # Commit in batches
             if records_created % 100 == 0:
                 registry_session.commit()
-                _logger.info(f"Committed batch, created {records_created} records so far")
+                _logger.info(
+                    f"Committed batch, created {records_created} records so far"
+                )
 
         except Exception as e:
             savepoint.rollback()
-            _logger.error(f"Error processing vehicle record {vehicle_record.owner_aadhaar}: {str(e)}")
+            _logger.error(
+                f"Error processing vehicle record {vehicle_record.owner_aadhaar}: {str(e)}"
+            )
             continue
 
-    _logger.info(f"Completed vehicle records. Created {records_created} records so far.")
+    _logger.info(
+        f"Completed vehicle records. Created {records_created} records so far."
+    )
 
     # Process government employee records if we haven't reached the limit
     if records_created < max_records:
         _logger.info("Starting to process government employee records...")
-        
-        govt_emp_query = registry_session.query(G2PRegistryGovtEmployees).filter(
-            G2PRegistryGovtEmployees.aadhaar.isnot(None),
-            G2PRegistryGovtEmployees.aadhaar != '',
-        ).order_by(G2PRegistryGovtEmployees.aadhaar)
+
+        govt_emp_query = (
+            registry_session.query(G2PRegistryGovtEmployees)
+            .filter(
+                G2PRegistryGovtEmployees.aadhaar.isnot(None),
+                G2PRegistryGovtEmployees.aadhaar != "",
+            )
+            .order_by(G2PRegistryGovtEmployees.aadhaar)
+        )
 
         govt_emp_records = govt_emp_query.all()
-        _logger.info(f"Found {len(govt_emp_records)} government employee records with valid Aadhaar")
+        _logger.info(
+            f"Found {len(govt_emp_records)} government employee records with valid Aadhaar"
+        )
 
         for govt_emp_record in govt_emp_records:
             if records_created >= max_records:
                 break
-                
+
             # Skip if Aadhaar already processed
             if govt_emp_record.aadhaar in processed_aadhaar:
                 continue
@@ -225,18 +249,24 @@ def _create_ration_card_applicants(
                     processed_aadhaar.add(govt_emp_record.aadhaar)
                     records_created += 1
 
-                    _logger.debug(f"Created ration card applicant from govt employee record: {govt_emp_record.aadhaar}")
+                    _logger.debug(
+                        f"Created ration card applicant from govt employee record: {govt_emp_record.aadhaar}"
+                    )
 
                 savepoint.commit()
 
                 # Commit in batches
                 if records_created % 100 == 0:
                     registry_session.commit()
-                    _logger.info(f"Committed batch, created {records_created} records so far")
+                    _logger.info(
+                        f"Committed batch, created {records_created} records so far"
+                    )
 
             except Exception as e:
                 savepoint.rollback()
-                _logger.error(f"Error processing govt employee record {govt_emp_record.aadhaar}: {str(e)}")
+                _logger.error(
+                    f"Error processing govt employee record {govt_emp_record.aadhaar}: {str(e)}"
+                )
                 continue
 
     # Final commit

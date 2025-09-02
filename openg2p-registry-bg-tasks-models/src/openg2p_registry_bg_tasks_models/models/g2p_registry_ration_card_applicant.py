@@ -1,5 +1,5 @@
 from openg2p_fastapi_common.models import BaseORMModel
-from sqlalchemy import BigInteger, Date, Integer, String
+from sqlalchemy import BigInteger, Date, String
 from sqlalchemy.orm import mapped_column
 
 
